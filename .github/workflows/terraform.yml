@@ -16,13 +16,13 @@ jobs:
       uses: hashicorp/setup-terraform@v1
 
     - name: Terraform Init and Apply for EC2
-      working-directory: ./ec2
+      working-directory: ec2
       run: |
         terraform init
         terraform apply -auto-approve
         
     - name: Terraform Init and Apply for EKS
-      working-directory: ./eks
+      working-directory: eks
       run: |
         terraform init
         terraform apply -auto-approve
