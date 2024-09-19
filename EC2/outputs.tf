@@ -6,7 +6,7 @@ output "bastion_public_ip" {
 
 
 # Output the name of the generated key pair
-output "key_pair_name" {
-  description = "Key pair name used for the EC2 instance"
-  value       = aws_key_pair.ec2_key_pair.key_name
-}
+# output "key_pair_name" {
+#   description = "Key pair name used for the EC2 instance"
+#   value       = aws_key_pair.ec2_key_pair.key_name
+# }
