@@ -1,0 +1,36 @@
+name: Terraform EKS Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Terraform Init and Apply for EC2
+      working-directory: ./ec2-instance
+      run: |
+        terraform init
+        terraform apply -auto-approve
+        
+    - name: Terraform Init and Apply for EKS
+      working-directory: ./eks-cluster
+      run: |
+        terraform init
+        terraform apply -auto-approve
+
+    - name: Configure kubectl
+      run: |
+        aws eks update-kubeconfig --region us-west-2 --name eks-cluster
+
+    - name: Deploy Nginx to EKS
+      run: |
+        kubectl apply -f k8s-manifests/nginx-deployment.yaml
