@@ -16,13 +16,13 @@ jobs:
       uses: hashicorp/setup-terraform@v1
 
     - name: Terraform Init and Apply for EC2
-      working-directory: ./ec2-instance
+      working-directory: ./ec2
       run: |
         terraform init
         terraform apply -auto-approve
         
     - name: Terraform Init and Apply for EKS
-      working-directory: ./eks-cluster
+      working-directory: ./eks
       run: |
         terraform init
         terraform apply -auto-approve
@@ -33,4 +33,4 @@ jobs:
 
     - name: Deploy Nginx to EKS
       run: |
-        kubectl apply -f k8s-manifests/nginx-deployment.yaml
+        kubectl apply -f manifests/nginx-deployment.yaml
