@@ -6,20 +6,7 @@ provider "aws" {
 }
 
 
-# Define the EC2 instance resource to act as a bastion host
-resource "aws_instance" "bastion" {
-  ami           = var.ami_id               # Specify the AMI ID for the EC2 instance
-  instance_type = var.instance_type        # Specify the instance type
 
-  key_name = var.key_name                  # Use the existing key pair provided in the variable
-
-  vpc_security_group_ids = [aws_security_group.bastion_sg.id]  # Attach security group
-  subnet_id              = var.subnet_id                       # Specify the subnet ID
-
-  tags = {
-    Name = "EKS-Bastion-Host"  # Tag the instance for easy identification
-  }
-}
 
 # Define a security group to allow SSH access to the bastion host
 resource "aws_security_group" "bastion_sg" {
@@ -42,7 +29,20 @@ resource "aws_security_group" "bastion_sg" {
     cidr_blocks = ["0.0.0.0/0"]            # To any IP address
   }
 }
+# Define the EC2 instance resource to act as a bastion host
+resource "aws_instance" "bastion" {
+  ami           = var.ami_id               # Specify the AMI ID for the EC2 instance
+  instance_type = var.instance_type        # Specify the instance type
 
+  key_name = var.key_name                  # Use the existing key pair provided in the variable
+
+  vpc_security_group_ids = [aws_security_group.bastion_sg.id]  # Attach security group
+  subnet_id              = var.subnet_id                       # Specify the subnet ID
+
+  tags = {
+    Name = "EKS-Bastion-Host"  # Tag the instance for easy identification
+  }
+}
 # Output the public IP of the bastion host for SSH access
 output "bastion_ip" {
   value = aws_instance.bastion.public_ip   # Outputs the EC2 instance public IP
