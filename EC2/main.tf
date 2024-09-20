@@ -6,49 +6,102 @@ provider "aws" {
 }
 
 
+# Fetch the latest Amazon Linux 2 AMI ID dynamically
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
 
-
-# Define a security group to allow SSH access to the bastion host
-resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg-tarak2"               # Name of the security group
-  description = "Allow SSH access"         # Description for the security group
-
-  # Inbound rule to allow SSH access from anywhere
-  ingress {
-    from_port   = 22                       # Start port for SSH
-    to_port     = 22                       # End port for SSH
-    protocol    = "tcp"                    # Protocol used for SSH
-    cidr_blocks = ["0.0.0.0/0"]            # Allow access from all IPs
-  }
-
-  # Outbound rule to allow all traffic from the bastion host
-  egress {
-    from_port   = 0                        # Allow all outbound traffic
-    to_port     = 0
-    protocol    = "-1"                     # All protocols
-    cidr_blocks = ["0.0.0.0/0"]            # To any IP address
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-2.0.*-x86_64-gp2"]
   }
 }
-# Define the EC2 instance resource to act as a bastion host
-resource "aws_instance" "bastion" {
-  ami           = var.ami_id               # Specify the AMI ID for the EC2 instance
-  instance_type = var.instance_type        # Specify the instance type
 
-  key_name = var.key_name                  # Use the existing key pair provided in the variable
+# Create a VPC
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "main-vpc"
+  }
+}
 
-  vpc_security_group_ids = [aws_security_group.bastion_sg.id]  # Attach security group
-  subnet_id              = var.subnet_id                       # Specify the subnet ID
+# Create a subnet
+resource "aws_subnet" "main" {
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "${var.region}"
+}
+
+# Create an Internet Gateway
+resource "aws_internet_gateway" "main" {
+  vpc_id = aws_vpc.main.id
+}
+
+# Create a route table
+resource "aws_route_table" "main" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
 
   tags = {
-    Name = "EKS-Bastion-Host"  # Tag the instance for easy identification
+    Name = "main-route-table"
   }
 }
-# Output the public IP of the bastion host for SSH access
-output "bastion_ip" {
-  value = aws_instance.bastion.public_ip   # Outputs the EC2 instance public IP
+
+# Associate the route table with the subnet
+resource "aws_route_table_association" "a" {
+  subnet_id      = aws_subnet.main.id
+  route_table_id = aws_route_table.main.id
 }
 
-# Output the name of the existing key pair being used
-output "key_pair_name" {
-  value = aws_instance.bastion.key_name    # Outputs the key pair name used in the EC2 instance
+# Create a security group for bastion host
+resource "aws_security_group" "bastion_sg" {
+  name        = "bastion-sg-tarak123}"
+  description = "Security group for bastion host"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "bastion-sg"
+  }
+}
+
+# Create a random string to append to resource names
+resource "random_string" "this" {
+  length  = 8
+  special = false
+}
+
+# Create an EC2 instance
+resource "aws_instance" "bastion" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.main.id
+  security_groups = [aws_security_group.bastion_sg.name]
+  key_name      = var.key_name # Ensure you've defined key_name variable and it exists in AWS
+
+  tags = {
+    Name = "bastion-${random_string.this.id}"
+  }
+}
+
+# Output EC2 instance public IP
+output "bastion_public_ip" {
+  value = aws_instance.bastion.public_ip
 }
