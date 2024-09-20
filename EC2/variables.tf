@@ -24,3 +24,14 @@ variable "subnet_id" {
   description = "Subnet ID for the EC2 instance"
   default     = "test-subnet"          # Replace with your subnet ID
 }
+variable "region" {
+  description = "AWS region"
+}
+
+variable "access_key" {
+  description = "AWS access key"
+}
+
+variable "secret_key" {
+  description = "AWS secret key"
+}

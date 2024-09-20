@@ -1,7 +1,10 @@
 # Define the AWS provider and specify the region
 provider "aws" {
-  region = var.aws_region
+  region                  = var.region
+  access_key              = var.access_key
+  secret_key              = var.secret_key
 }
+
 
 # Define the EC2 instance resource to act as a bastion host
 resource "aws_instance" "bastion" {
