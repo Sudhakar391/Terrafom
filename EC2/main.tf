@@ -23,7 +23,7 @@ resource "aws_instance" "bastion" {
 
 # Define a security group to allow SSH access to the bastion host
 resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg-${random_string.this.id}"               # Name of the security group
+  name        = "bastion-sg-tarak"               # Name of the security group
   description = "Allow SSH access"         # Description for the security group
 
   # Inbound rule to allow SSH access from anywhere
