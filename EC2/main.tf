@@ -29,7 +29,7 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "main" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24"
-  availability_zone = "${var.region}"
+  availability_zone = "${var.region}a"
 }
 
 # Create an Internet Gateway
@@ -59,7 +59,7 @@ resource "aws_route_table_association" "a" {
 
 # Create a security group for bastion host
 resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg-tarak12}"
+  name        = "bastion-sg-tarak09}"
   description = "Security group for bastion host"
   vpc_id      = aws_vpc.main.id
 
