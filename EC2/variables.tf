@@ -22,5 +22,5 @@ variable "key_name" {
 
 variable "subnet_id" {
   description = "Subnet ID for the EC2 instance"
-  default     = "subnet-12345678"          # Replace with your subnet ID
+  default     = "test-subnet"          # Replace with your subnet ID
 }
