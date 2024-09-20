@@ -59,7 +59,7 @@ resource "aws_route_table_association" "a" {
 
 # Create a security group for bastion host
 resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg-tarak123}"
+  name        = "bastion-sg-tarak12}"
   description = "Security group for bastion host"
   vpc_id      = aws_vpc.main.id
 
@@ -101,7 +101,4 @@ resource "aws_instance" "bastion" {
   }
 }
 
-# Output EC2 instance public IP
-output "bastion_public_ip" {
-  value = aws_instance.bastion.public_ip
-}
+
