@@ -24,7 +24,7 @@ resource "aws_eks_cluster" "eks" {
 
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.eks.name
-  node_group_name = "\${var.cluster_name}-node-group"
+  node_group_name = "${var.cluster_name}-node-group"
   node_role_arn   = aws_iam_role.eks_node_group.arn
   subnet_ids      = aws_subnet.eks_subnet[*].id
 
@@ -54,7 +54,7 @@ resource "aws_subnet" "eks_subnet" {
   cidr_block = cidrsubnet(aws_vpc.eks_vpc.cidr_block, 8, count.index)
 
   tags = {
-    Name = "eks-subnet-\${count.index}"
+    Name = "eks-subnet-${count.index}"
   }
 }
 
