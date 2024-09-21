@@ -53,11 +53,6 @@ variable "public_subnets" {
   default     = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
 }
 
-variable "cluster_name" {
-  description = "The name of the EKS cluster."
-  type        = string
-  default     = "my-eks-cluster"
-}
 
 variable "k8s_version" {
   description = "The Kubernetes version for the EKS cluster."
