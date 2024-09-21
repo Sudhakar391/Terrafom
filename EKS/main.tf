@@ -21,18 +21,15 @@ module "vpc" {
 module "eks" {
   source = "terraform-aws-modules/eks/aws"
   version = "19.0.0"
-
   cluster_name    = var.cluster_name      # Name for the EKS cluster
   cluster_version = var.k8s_version       # Kubernetes version for the EKS cluster
   subnets         = module.vpc.public_subnets  # Use public subnets for worker nodes
   vpc_id          = module.vpc.vpc_id     # VPC ID from the VPC module
-
   node_groups = {
     eks_nodes = {
       desired_capacity = 2                # Desired number of worker nodes
       max_capacity     = 3                # Maximum number of worker nodes
       min_capacity     = 1                # Minimum number of worker nodes
-
       instance_type = "t3.medium"         # EC2 instance type for worker nodes
     }
   }
