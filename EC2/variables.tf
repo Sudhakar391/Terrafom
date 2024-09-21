@@ -2,7 +2,7 @@
 
 variable "aws_region" {
   description = "AWS region"
-  default     = "us-west-2"                # Default AWS region
+  default     = "ap-south-1"                # Default AWS region
 }
 
 # variable "ami_id" {
@@ -17,7 +17,7 @@ variable "instance_type" {
 
 variable "key_name" {
   description = "Key pair name to use for the EC2 instance"
-  default     = "windows"                  # Default key pair name (existing key pair)
+  default     = "Windows"                  # Default key pair name (existing key pair)
 }
 
 variable "subnet_id" {
