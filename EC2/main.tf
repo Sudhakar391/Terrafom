@@ -63,7 +63,7 @@ resource "aws_route_table_association" "a" {
 
 # Create a security group for bastion host
 resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg-${random_string.this.id}"
+  name        = "bastion-sg-ec2"
   description = "Security group for bastion host"
   vpc_id      = aws_vpc.main.id
 

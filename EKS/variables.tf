@@ -2,7 +2,7 @@
 
 variable "aws_region" {
   description = "AWS region"
-  default     = "us-west-2"                # Default AWS region
+  default     = "ap-south-1"                # Default AWS region
 }
 
 variable "vpc_name" {
@@ -38,4 +38,11 @@ variable "k8s_version" {
 variable "bastion_security_group_id" {
   description = "Security group ID of the Bastion host"
   default     = ""                         # Replace with the bastion security group ID
+}
+variable "access_key" {
+  description = "AWS access key"
+}
+
+variable "secret_key" {
+  description = "AWS secret key"
 }
