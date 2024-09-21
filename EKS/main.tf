@@ -22,6 +22,7 @@ module "eks" {
   source = "terraform-aws-modules/eks/aws"
   version = "19.0.0"
   cluster_name    = var.cluster_name      # Name for the EKS cluster
+  region = var.aws_region
   cluster_version = var.k8s_version       # Kubernetes version for the EKS cluster
   subnets         = module.vpc.public_subnets  # Use public subnets for worker nodes
   vpc_id          = module.vpc.vpc_id     # VPC ID from the VPC module
