@@ -2,11 +2,11 @@
 
 # Define the AWS provider and specify the region
 provider "aws" {
-  region     = var.aws_region
+  region = var.region
   access_key = var.access_key
   secret_key = var.secret_key
+
 }
-# main.tf
 
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name
