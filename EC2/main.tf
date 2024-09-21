@@ -117,11 +117,6 @@ resource "local_file" "bastion_private_key" {
   filename = "${path.module}/bastion-key.pem"
 }
 
-# Output EC2 instance public IP and key path
-output "bastion_public_ip" {
-  value = aws_instance.bastion.public_ip
-}
-
 output "key_pair_path" {
   value = local_file.bastion_private_key.filename
 }
