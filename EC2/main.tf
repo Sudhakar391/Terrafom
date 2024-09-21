@@ -1,10 +1,9 @@
 # Define the AWS provider and specify the region
 provider "aws" {
-  region                  = var.region
-  access_key              = var.access_key
-  secret_key              = var.secret_key
+  region     = var.region
+  access_key = var.access_key
+  secret_key = var.secret_key
 }
-
 
 # Fetch the latest Amazon Linux 2 AMI ID dynamically
 data "aws_ami" "amazon_linux" {
@@ -59,7 +58,7 @@ resource "aws_route_table_association" "a" {
 
 # Create a security group for bastion host
 resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg-tarak09"
+  name        = "bastion-sg-tarak06"
   description = "Security group for bastion host"
   vpc_id      = aws_vpc.main.id
 
@@ -76,10 +75,6 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  tags = {
-    Name = "bastion-sg"
-  }
 }
 
 # Create a random string to append to resource names
@@ -90,15 +85,13 @@ resource "random_string" "this" {
 
 # Create an EC2 instance
 resource "aws_instance" "bastion" {
-  ami           = data.aws_ami.amazon_linux.id
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.main.id
-  security_groups = [aws_security_group.bastion_sg.name]
-  key_name      = var.key_name # Ensure you've defined key_name variable and it exists in AWS
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = "t2.micro"
+  subnet_id              = aws_subnet.main.id
+  vpc_security_group_ids = [aws_security_group.bastion_sg.id] # Changed from security_groups to vpc_security_group_ids
+  key_name               = var.key_name # Ensure you've defined key_name variable and it exists in AWS
 
   tags = {
     Name = "bastion-${random_string.this.id}"
   }
 }
-
-
