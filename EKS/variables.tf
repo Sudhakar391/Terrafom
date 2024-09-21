@@ -1,9 +1,9 @@
 # Variables for AWS region, VPC, EKS cluster, and bastion security group
 
-# variable "aws_region" {
-#   description = "AWS region"
-#   default     = "ap-south-1"                # Default AWS region
-# }
+variable "aws_region" {
+  description = "AWS region"
+  default     = "ap-south-1"                # Default AWS region
+}
 
 variable "vpc_name" {
   description = "VPC name"

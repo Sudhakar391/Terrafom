@@ -1,4 +1,4 @@
-aws_region             = "ap-south-1"
+# aws_region             = "ap-south-1"
 vpc_name               = "eks-vpc"
 cluster_name           = "eks-cluster"
 k8s_version            = "1.22"
