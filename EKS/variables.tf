@@ -26,7 +26,7 @@ variable "max_size" {
 variable "min_size" {
   description = "The minimum number of worker nodes"
   type        = number
-  default     = 1
+  default     = 2
 }
 variable "access_key" {
   description = "AWS access key"
