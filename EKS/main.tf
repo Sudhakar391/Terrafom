@@ -6,66 +6,121 @@ provider "aws" {
   access_key = var.access_key
   secret_key = var.secret_key
 }
+# main.tf
 
-# Retrieve available availability zones for the VPC
-data "aws_availability_zones" "available" {}
+resource "aws_eks_cluster" "eks" {
+  name     = var.cluster_name
+  role_arn = aws_iam_role.eks_cluster.arn
 
-# Create a VPC using the Terraform AWS VPC module
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "4.0.0"
-  name    = var.vpc_name                   # Name for the VPC
-  cidr    = var.vpc_cidr                   # CIDR block for the VPC
-  azs     = slice(data.aws_availability_zones.available.names, 0, 3)  # Availability zones
-  private_subnets = var.private_subnets    # Private subnets for the VPC
-  public_subnets  = var.public_subnets     # Public subnets for the VPC
-  enable_nat_gateway = true                # Enable NAT gateway for private subnets
+  vpc_config {
+    subnet_ids = aws_subnet.eks_subnet[*].id
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_cluster_AmazonEKSClusterPolicy,
+    aws_iam_role_policy_attachment.eks_cluster_AmazonEKSVPCResourceController,
+  ]
+}
+
+resource "aws_eks_node_group" "node_group" {
+  cluster_name    = aws_eks_cluster.eks.name
+  node_group_name = "\${var.cluster_name}-node-group"
+  node_role_arn   = aws_iam_role.eks_node_group.arn
+  subnet_ids      = aws_subnet.eks_subnet[*].id
+
+  scaling_config {
+    desired_size = var.desired_capacity
+    max_size     = var.max_size
+    min_size     = var.min_size
+  }
+
+  instance_types = [var.node_instance_type]
+
+  depends_on = [
+    aws_eks_cluster.eks,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEKS_CNI_Policy,
+    aws_iam_role_policy_attachment.eks_worker_AmazonEC2ContainerRegistryReadOnly,
+  ]
+}
+
+resource "aws_vpc" "eks_vpc" {
+  cidr_block = "10.0.0.0/16"
+}
+
+resource "aws_subnet" "eks_subnet" {
+  count = 2
+  vpc_id     = aws_vpc.eks_vpc.id
+  cidr_block = cidrsubnet(aws_vpc.eks_vpc.cidr_block, 8, count.index)
 
   tags = {
-    Name = var.vpc_name
+    Name = "eks-subnet-\${count.index}"
   }
 }
 
-# Create an EKS cluster using the Terraform AWS EKS module
-module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "19.0.0"
-  cluster_name    = var.cluster_name       # Name for the EKS cluster
-  cluster_version = var.k8s_version        # Kubernetes version for the EKS cluster
-  subnets         = module.vpc.public_subnets  # Use public subnets for worker nodes
-  vpc_id          = module.vpc.vpc_id      # VPC ID from the VPC module
+resource "aws_iam_role" "eks_cluster" {
+  name = "eks-cluster-role"
 
-  node_groups = {
-    eks_nodes = {
-      desired_capacity = 2                 # Desired number of worker nodes
-      max_capacity     = 3                 # Maximum number of worker nodes
-      min_capacity     = 1                 # Minimum number of worker nodes
-      instance_type    = var.instance_type # EC2 instance type for worker nodes
-    }
-  }
-
-  tags = {
-    Environment = "dev"
-  }
+  assume_role_policy = jsonencode({
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "eks.amazonaws.com"
+        }
+      },
+    ]
+    Version = "2012-10-17"
+  })
 }
 
-# Allow the Bastion host to access the EKS cluster
-resource "aws_security_group_rule" "allow_bastion_to_eks" {
-  type                     = "ingress"          # Ingress rule
-  from_port                = 443                # HTTPS port
-  to_port                  = 443
-  protocol                 = "tcp"              # TCP protocol
-  security_group_id        = module.eks.cluster_security_group_id  # EKS cluster security group
-  source_security_group_id = var.bastion_security_group_id  # Bastion host security group
+resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSClusterPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.eks_cluster.name
 }
 
-# Output the EKS cluster endpoint and VPC ID
-output "eks_cluster_endpoint" {
-  description = "EKS Cluster endpoint"
-  value       = module.eks.cluster_endpoint
+resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSVPCResourceController" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
+  role       = aws_iam_role.eks_cluster.name
 }
 
-output "vpc_id" {
-  description = "VPC ID"
-  value       = module.vpc.vpc_id
+resource "aws_iam_role" "eks_node_group" {
+  name = "eks-node-group-role"
+
+  assume_role_policy = jsonencode({
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+    Version = "2012-10-17"
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEKSWorkerNodePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.eks_node_group.name
+}
+
+resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.eks_node_group.name
+}
+
+resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEC2ContainerRegistryReadOnly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.eks_node_group.name
+}
+
+data "aws_eks_cluster" "cluster" {
+  name = aws_eks_cluster.eks.name
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = aws_eks_cluster.eks.name
 }
