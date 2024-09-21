@@ -1,8 +1,7 @@
 # variables.tf
 variable "aws_region" {
-  description = "The AWS region to create resources in"
-  type        = string
-  default     = "ap-south-1"
+  description = "AWS region"
+  default     = "ap-south-1"                # Default AWS region
 }
 
 variable "cluster_name" {
@@ -33,4 +32,11 @@ variable "min_size" {
   description = "The minimum number of worker nodes"
   type        = number
   default     = 1
+}
+variable "access_key" {
+  description = "AWS access key"
+}
+
+variable "secret_key" {
+  description = "AWS secret key"
 }
