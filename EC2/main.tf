@@ -1,8 +1,8 @@
-# Define the AWS provider and specify the region
 provider "aws" {
-  region     = var.region
+  region = var.region
   access_key = var.access_key
   secret_key = var.secret_key
+
 }
 
 # Fetch the latest Amazon Linux 2 AMI ID dynamically
@@ -49,6 +49,11 @@ resource "aws_route_table" "main" {
     Name = "main-route-table"
   }
 }
+# Create a random string to append to resource names
+resource "random_string" "this" {
+  length  = 3
+  special = false
+}
 
 # Associate the route table with the subnet
 resource "aws_route_table_association" "a" {
@@ -58,7 +63,7 @@ resource "aws_route_table_association" "a" {
 
 # Create a security group for bastion host
 resource "aws_security_group" "bastion_sg" {
-  name        = "bastion-sg01"
+  name        = "bastion-sg-${random_string.this.id}"
   description = "Security group for bastion host"
   vpc_id      = aws_vpc.main.id
 
@@ -75,12 +80,22 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "bastion-sg"
+  }
 }
 
-# Create a random string to append to resource names
-resource "random_string" "this" {
-  length  = 8
-  special = false
+
+# Create a new key pair
+resource "tls_private_key" "bastion" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+resource "aws_key_pair" "bastion_key" {
+  key_name   = "bastion-key-${random_string.this.id}"
+  public_key = tls_private_key.bastion.public_key_openssh
 }
 
 # Create an EC2 instance
@@ -88,10 +103,25 @@ resource "aws_instance" "bastion" {
   ami                    = data.aws_ami.amazon_linux.id
   instance_type          = "t2.micro"
   subnet_id              = aws_subnet.main.id
-  vpc_security_group_ids = [aws_security_group.bastion_sg.id] # Changed from security_groups to vpc_security_group_ids
-  key_name               = var.key_name # Ensure you've defined key_name variable and it exists in AWS
+  vpc_security_group_ids = [aws_security_group.bastion_sg.id] 
+  key_name               = aws_key_pair.bastion_key.key_name  # Using the new key pair
 
   tags = {
     Name = "bastion-${random_string.this.id}"
   }
+}
+
+# Save the private key to a file
+resource "local_file" "bastion_private_key" {
+  content  = tls_private_key.bastion.private_key_pem
+  filename = "${path.module}/bastion-key.pem"
+}
+
+# Output EC2 instance public IP and key path
+output "bastion_public_ip" {
+  value = aws_instance.bastion.public_ip
+}
+
+output "key_pair_path" {
+  value = local_file.bastion_private_key.filename
 }
