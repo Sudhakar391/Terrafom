@@ -25,14 +25,14 @@ jobs:
     - name: Print AWS Environment Variables
       run: env | grep AWS
 
-    - name: Terraform Init and Apply for EC2
-      working-directory: EC2
-      run: |
-        terraform init
-        terraform apply -auto-approve \
-          -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
-          -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
-          -var="region=${{ secrets.AWS_REGION }}"
+    # - name: Terraform Init and Apply for EC2
+    #   working-directory: EC2
+    #   run: |
+    #     terraform init
+    #     terraform apply -auto-approve \
+    #       -var="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" \
+    #       -var="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+    #       -var="region=${{ secrets.AWS_REGION }}"
 
     - name: Terraform Init and Apply for EKS
       working-directory: EKS
