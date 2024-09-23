@@ -136,8 +136,8 @@ resource "aws_iam_role" "eks_cluster_role" {
         Principal = {
           Service = "eks.amazonaws.com"
         }
-        Action = "*"
-        Resource= "*"
+        Action = "sts:AssumeRole"
+        # Resource= "*"
       }
     ]
   })
@@ -172,8 +172,8 @@ resource "aws_iam_role" "eks_worker_node_role" {
         Principal = {
           Service = "ec2.amazonaws.com"
         }
-        Action = "*"
-        Resource= "*"
+        Action = "sts:AssumeRole"
+        # Resource= "*"
       }
     ]
   })
