@@ -1,21 +1,28 @@
-# outputs.tf
 
-output "cluster_name" {
-  description = "The name of the EKS cluster"
-  value       = aws_eks_cluster.eks.name
+output "eks_endpoint" {
+  value = module.eks.cluster_endpoint
 }
 
-output "cluster_endpoint" {
-  description = "The endpoint of the EKS cluster"
-  value       = aws_eks_cluster.eks.endpoint
+output "eks_cluster_name" {
+  value = module.eks.cluster_id
 }
 
-output "cluster_certificate_authority" {
-  description = "The certificate authority data for the EKS cluster"
-  value       = aws_eks_cluster.eks.certificate_authority[0].data
+output "eks_cluster_security_group_id" {
+  value = module.eks.cluster_security_group_id
 }
 
-output "node_group_name" {
-  description = "The name of the EKS node group"
-  value       = aws_eks_node_group.node_group.node_group_name
+output "kubeconfig" {
+  value     = module.eks.kubeconfig
+  sensitive = true
+}
+variable "access_key" {
+  description = "AWS access key"
+}
+
+variable "secret_key" {
+  description = "AWS secret key"
+}
+variable "bastion_security_group_id" {
+  description = "Security group ID for the Bastion host."
+  type        = string
 }
