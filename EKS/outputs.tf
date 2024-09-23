@@ -15,14 +15,3 @@ output "kubeconfig" {
   value     = module.eks.kubeconfig
   sensitive = true
 }
-variable "access_key" {
-  description = "AWS access key"
-}
-
-variable "secret_key" {
-  description = "AWS secret key"
-}
-variable "bastion_security_group_id" {
-  description = "Security group ID for the Bastion host."
-  type        = string
-}
