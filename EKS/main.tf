@@ -2,7 +2,7 @@
 provider "aws" {
   access_key = var.access_key
   secret_key = var.secret_key
-  
+  region     = var.region
 }
 
 # Check for existing IAM roles
@@ -19,10 +19,12 @@ locals {
   create_node_group_role = length(data.aws_iam_role.existing_node_group_role.arn) == 0 ? 1 : 0
 }
 
+# Create VPC for EKS
 resource "aws_vpc" "eks_vpc" {
   cidr_block = "10.0.0.0/16"
 }
 
+# Create Subnets for EKS
 resource "aws_subnet" "eks_subnet" {
   count = 2
   vpc_id     = aws_vpc.eks_vpc.id
@@ -34,6 +36,7 @@ resource "aws_subnet" "eks_subnet" {
   }
 }
 
+# Create IAM Role for EKS Cluster
 resource "aws_iam_role" "eks_cluster" {
   count = local.create_cluster_role
 
@@ -53,6 +56,7 @@ resource "aws_iam_role" "eks_cluster" {
   })
 }
 
+# Attach Policies to EKS Cluster Role
 resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSClusterPolicy" {
   count = local.create_cluster_role
 
@@ -67,6 +71,7 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_AmazonEKSVPCResourceContr
   role       = aws_iam_role.eks_cluster[count.index].name
 }
 
+# Create EKS Cluster
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name
   role_arn = local.create_cluster_role == 1 ? aws_iam_role.eks_cluster[0].arn : data.aws_iam_role.existing_cluster_role.arn
@@ -81,6 +86,7 @@ resource "aws_eks_cluster" "eks" {
   ]
 }
 
+# Create IAM Role for EKS Node Group
 resource "aws_iam_role" "eks_node_group" {
   count = local.create_node_group_role
 
@@ -100,6 +106,7 @@ resource "aws_iam_role" "eks_node_group" {
   })
 }
 
+# Attach Policies to EKS Node Group Role
 resource "aws_iam_role_policy_attachment" "eks_worker_AmazonEKSWorkerNodePolicy" {
   count = local.create_node_group_role
 
@@ -142,6 +149,7 @@ resource "aws_iam_role_policy_attachment" "ec2_container_registry_read_only" {
   role       = aws_iam_role.eks_node_group[count.index].name
 }
 
+# Create EKS Node Group
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.eks.name
   node_group_name = "${var.cluster_name}-node-group"
